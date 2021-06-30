@@ -22,7 +22,7 @@ census_2019 <- get_acs(
   year = 2019,
   survey = "acs5",
   output = "wide",
-  geometry = FALSE,
+  geometry = TRUE,
   moe_sum = FALSE,
   variables = c(
     pop_num = "B01003_001E", # pop_num,
@@ -58,5 +58,6 @@ census_2019 <- get_acs(
     count_Asian_est = "B25003D_001E", # count_Asian_est
     homeowner_Latino_est = "B25003I_002E", # homeowner_Latino_est
     count_Latino_est = "B25003I_001E" # count_Latino_est
-  )) %>% census_2019 %>%
-  filter(GEOID %in% geoids)
+  )) %>%
+  filter(GEOID %in% geoids) 
+
