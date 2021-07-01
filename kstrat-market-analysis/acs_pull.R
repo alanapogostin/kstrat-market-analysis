@@ -12,14 +12,20 @@ library(acssf)
 census_api_key("c32dfbf7d25fe9558fd11bf021780457970f96ff", install = TRUE)
 
 # List out all of the GEOIDs in " "'s below. 
-geoids <- c("09007541100", "09007541200", "09007541300", "09007541401", "09007541402", "09007541500", "09007541600", "09007541700", "09007542000", "09007542200", "09007542000", "09006802000")
+geoids_obs <- c("09007541100", "09007541200", "09007541300", "09007541401", "09007541402", "09007541500", "09007541600", "09007541700", "09007542000", "09007542200", "09007542000", "09006802000")
+state_obs <- "CT"
+county_obs <- "007"
+year_obs <- 2019
+
+acs5sub <- load_variables(2015, "acs5/subject", cache = TRUE)
 v19 <- load_variables(2019, "acs5", cache = TRUE)
+
 # Pull in census variables
 census_2019 <- get_acs(
   geography = "tract",
-  state = "CT",
-  county = "007",
-  year = 2019,
+  state = state_obs,
+  county = county_obs, 
+  year = year_obs,
   survey = "acs5",
   output = "wide",
   geometry = TRUE,
@@ -61,3 +67,4 @@ census_2019 <- get_acs(
   )) %>%
   filter(GEOID %in% geoids) 
 
+write.csv(census_2019, "~/Desktop/kstrat/MarketAnalysis/census_2019_middletown.csv")
