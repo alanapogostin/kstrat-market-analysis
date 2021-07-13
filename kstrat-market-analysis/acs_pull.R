@@ -26,7 +26,7 @@ geoids_obs <- c("09007541100",
                 "09007542000", 
                 "09006802000")
 
-study_area <- c("09007541600",
+geoids_ss <- c("09007541600",
                 "09007541700",
                 "09006802000"
                 )
@@ -45,13 +45,14 @@ v19 <- load_variables(2019, "acs5", cache = TRUE)
 year <- c("2000", "2010", "2019")
 arg_list <- list(x = year)
 arguments <- cross_df(arg_list)
-# Pull in census variables
 
-census_demographic_2019 <- get_acs(
+# **************Pull Demograhic Data *****************
+
+census_demographic_2000 <- get_acs(
   geography = "tract",
   state = state_obs,
-  county = county_obs, 
-  year = year,
+  county = hartford_msa, 
+  year = 2000,
   survey = "acs5",
   variables = c(
     "total_pop" = "B01003_001", # pop_num,
@@ -97,13 +98,150 @@ census_demographic_2019 <- get_acs(
             speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
             speak_only_eng,
             speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
-            ) %>%
-  filter(GEOID %in% geoids_obs)
+            )
+# Filtering for Hartford
+census_demographic_2010_msa <- census_demographic_2010 %>%
+  filter(GEOID %in% geoids_obs) %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+  transmute(census_year = "2010",
+            geography = "MSA",
+            total_pop,
+            two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+            pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+            pop_race_black_pct = race_black / na_if(total_pop, 0),
+            pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+            pop_race_white_pct = race_white / na_if(total_pop, 0),
+            educ_college, 
+            educ_grad, 
+            median_age,
+            pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+            pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+            pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+            speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+            speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+  )
 
-#Economic Characteristics
+census_demographic_2019_msa <- census_demographic_2019 %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+  transmute(census_year = "2019",
+            geography = "MSA",
+            total_pop,
+            two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+            pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+            pop_race_black_pct = race_black / na_if(total_pop, 0),
+            pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+            pop_race_white_pct = race_white / na_if(total_pop, 0),
+            educ_college, 
+            educ_grad, 
+            median_age,
+            pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+            pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+            pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+            speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+            speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+  )
+
+#Filtering for Middletown
+census_demographic_2019_middletown <- census_demographic_2019 %>%
+  filter(GEOID %in% geoids_obs) %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+    transmute(census_year = "2019",
+              geography = "Middletown",
+              total_pop,
+              two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+              pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+              pop_race_black_pct = race_black / na_if(total_pop, 0),
+              pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+              pop_race_white_pct = race_white / na_if(total_pop, 0),
+              educ_college, 
+              educ_grad, 
+              median_age,
+              pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+              pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+              pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+              speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+              speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+    )
+
+census_demographic_2010_middletown <- census_demographic_2010 %>%
+  filter(GEOID %in% geoids_obs) %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+  transmute(census_year = "2010",
+            geography = "Middletown",
+            total_pop,
+            two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+            pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+            pop_race_black_pct = race_black / na_if(total_pop, 0),
+            pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+            pop_race_white_pct = race_white / na_if(total_pop, 0),
+            educ_college, 
+            educ_grad, 
+            median_age,
+            pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+            pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+            pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+            speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+            speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+  )
+
+# Filtering for Study Site
+census_demographic_2019_ss <- census_demographic_2019 %>%
+  filter(GEOID %in% geoids_ss) %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+  transmute(census_year = "2010",
+            geography = "Study Site",
+            total_pop,
+            two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+            pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+            pop_race_black_pct = race_black / na_if(total_pop, 0),
+            pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+            pop_race_white_pct = race_white / na_if(total_pop, 0),
+            educ_college, 
+            educ_grad, 
+            median_age,
+            pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+            pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+            pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+            speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+            speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+  )
+
+census_demographic_2010_ss <- census_demographic_2010 %>%
+  filter(GEOID %in% geoids_ss) %>%
+  select("total_pop", "two_or_more_races", "race_asian", "race_black", "race_hisp", "race_white", "educ_hs", "educ_college", "educ_grad", "median_age", "pop_u18_num", "pop_65p_num", "pop_18_64_num", "speak_other_lang", "speak_other_lang_pct", "speak_only_eng", "speak_only_eng_pct")%>%
+  summarize_all(sum) %>%
+  transmute(census_year = "2010",
+            geography = "Study Site",
+            total_pop,
+            two_or_more_races_pct = two_or_more_races/na_if(total_pop, 0),
+            pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
+            pop_race_black_pct = race_black / na_if(total_pop, 0),
+            pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
+            pop_race_white_pct = race_white / na_if(total_pop, 0),
+            educ_college, 
+            educ_grad, 
+            median_age,
+            pop_u18_pct = pop_u18_num / na_if(total_pop, 0), 
+            pop_65p_pct = pop_65p_num /na_if(total_pop, 0),
+            pop_18_64_pct = pop_65p_num /na_if(total_pop, 0),
+            speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
+            speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
+  )
+
+demographic_data <- rbind(census_demographic_2019_msa, census_demographic_2010_msa,census_demographic_2019_middletown, census_demographic_2010_middletown, census_demographic_2019_ss, census_demographic_2010_ss) %>%
+  as.data.frame() 
+
+# Export the demographic Data
+write.csv(demographic_data, "~/Desktop/kstrat/MarketAnalysis/census_demographic_middletown.csv")
+
+#*****************************Economic Characteristics********************
 census_economic_2019 <- get_acs(
   geography = "tract",
-  state = state_obs,
   county = county_obs, 
   year = 2018,
   survey = "acs5",
@@ -119,8 +257,16 @@ census_economic_2019 <- get_acs(
     "aggregate_hh_income_est" = "B19025_001", # aggregate_hh_income_est
     "hh_income_count_est" = "B19001_001" # hh_income_count_est summary variable
   )) %>%
-  select(-moe) %>%
-  pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate) %>%
+  select(-moe) 
+
+census_economic_2019_middletown <- census_economic_2019 %>%
+  select(!"NAME")%>%
+  filter(GEOID %in% geoids_obs) %>%
+  group_by("GEOID") %>%
+  summarise_all(sum, !GEOID)
+  
+
+
   transmute(GEOID, NAME, med_income, med_income, pop_pov_num, 
             pov_rate = pop_pov_num/total_pop,
             unemp,
@@ -129,6 +275,8 @@ census_economic_2019 <- get_acs(
             )%>%
   filter(GEOID %in% geoids) 
 
+
+# ********************* Housing Charateristics ******************
 census_housing_2019 <- get_acs(
   geography = "tract",
   state = state_obs,
@@ -174,7 +322,6 @@ census_housing_2019 <- get_acs(
 #             pop_race_white_pct = race_white / na_if(total_pop, 0)
 #   )
 
-  
 
 
-#write.csv(census_2019, "~/Desktop/kstrat/MarketAnalysis/census_2019_middletown.csv")
+write.csv(census_demographic_2019, "~/Desktop/kstrat/MarketAnalysis/census_2019_middletown.csv")
