@@ -30,6 +30,9 @@ study_area <- c("09007541600",
                 "09007541700",
                 "09006802000"
                 )
+hartford_msa <- c("003", #Hartford County
+                  "007", #Middlesex Couty
+                  "031") #Tolland County
 
 state_obs <- "CT"
 county_obs <- "007"
@@ -98,36 +101,56 @@ census_demographic_2019 <- get_acs(
   filter(GEOID %in% geoids_obs)
 
 #Economic Characteristics
-census_demographic_2019 <- get_acs(
+census_economic_2019 <- get_acs(
   geography = "tract",
   state = state_obs,
   county = county_obs, 
-  year = 2019,
+  year = 2018,
   survey = "acs5",
   variables = c(
-    med_income = 'B06011_001',
-    pop_pov_num ="B17001_002", # pop_pov_num
-    unemp = 'B27011_008',
-    unit_occ_num = "B25002_002", # unit_occ_num
-    unit_occ_own_num = "B25003_002", # unit_occ_own_num
-    unit_occ_rent_num = "B25003_003", # unit_occ_rent_num
-    unit_rent_cash_num = "B25063_002", # unit_rent_cash_num
-    unit_num = "B25002_001", 
-    unit_vac_num = "B25002_003", 
-    med_rent = "B25064_001", 
-    hh_inc_med = "B25119_001", # hh_inc_med
-    rent_burden_sev_num = "B25070_010", # rent_burden_sev_num
-    aggregate_hh_income = "B19025_001", # aggregate_hh_income
-    pop_pov_denom_num = "B17001_001", # pop_pov_denom_num
-    aggregate_hh_income_est = "B19025_001", # aggregate_hh_income_est
-    hh_income_count_est = "B19001_001", # hh_income_count_est summary variable
-    total_units = "B25024_001", # total_units
-    total_1_det = "B25024_002", # total_1_det
-    total_1_att = "B25024_003", # total_1_att
-    total_units_rent = "B25032_013", # 	total_units_rent
-    units_rent_1_det = "B25032_014", # units_rent_1_det
-    units_rent_1_att = "B25032_015"
+    "total_pop" = "B01003_001", # pop_num,
+    #pop_pov_denom_num = "B17001_001", # pop_pov_denom_num
+    "med_income" = 'B06011_001',
+    "med_hh_inc" = "B25119_001", 
+    "pop_pov_num" ="B17001_002", # pop_pov_num
+    "unemp" = 'B27011_008',
+    "labor_force" = "B27011_002",
+    "aggregate_hh_income" = "B19025_001", # aggregate_hh_income
+    "aggregate_hh_income_est" = "B19025_001", # aggregate_hh_income_est
+    "hh_income_count_est" = "B19001_001" # hh_income_count_est summary variable
   )) %>%
+  select(-moe) %>%
+  pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate) %>%
+  transmute(GEOID, NAME, med_income, med_income, pop_pov_num, 
+            pov_rate = pop_pov_num/total_pop,
+            unemp,
+            labor_force,
+            unemp_rate = unemp/labor_force,
+            )%>%
+  filter(GEOID %in% geoids) 
+
+census_housing_2019 <- get_acs(
+  geography = "tract",
+  state = state_obs,
+  county = county_obs, 
+  year = 2018,
+  survey = "acs5",
+  variables = c(
+    "unit_num" = "B25002_001", 
+    "unit_vac_num" = "B25002_003",
+    "unit_occ_rent_num" = "B25003_003", # unit_occ_rent_num
+    "unit_occ_own_num" = "B25003_002", # unit_occ_own_num
+    "med_rent" = "B25064_001", 
+    "rent_burden_sev_num" = "B25070_010", # rent_burden_sev_num
+    "unit_occ_num" = "B25002_002", # unit_occ_num
+    "total_units" = "B25024_001", # total_units
+    "total_1_det" = "B25024_002", # total_1_det
+    "total_1_att" = "B25024_003", # total_1_att
+    "total_units_rent" = "B25032_013", # 	total_units_rent
+    "units_rent_1_det" = "B25032_014", # units_rent_1_det
+    "units_rent_1_att" = "B25032_015"))%>%
+  select(-moe) %>%
+  pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate)%>%
   filter(GEOID %in% geoids) 
 
 # Creating indicators
