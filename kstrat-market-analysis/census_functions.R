@@ -1,4 +1,4 @@
-
+#******************** Demographic Functions ***********************
 census_demographics <- function(year, county, state){census_demographic_2000 <- get_acs(
   geography = "tract",
   state = state,
@@ -75,3 +75,84 @@ demographic_indicators <- function(df, tracts){
             speak_other_lang_pct = speak_other_lang / na_if(total_pop, 0),
             speak_only_eng_pct = speak_only_eng / na_if(total_pop, 0)
   )}
+
+#*****************************Economic Characteristics********************
+census_economic <- function(year, county){get_acs(
+  geography = "tract",
+  county = county, 
+  year = year,
+  survey = "acs5",
+  variables = c(
+    "total_pop" = "B01003_001", # pop_num,
+    #pop_pov_denom_num = "B17001_001", # pop_pov_denom_num
+    "med_income" = 'B06011_001',
+    "med_hh_inc" = "B25119_001", 
+    "pop_pov_num" ="B17001_002", # pop_pov_num
+    "unemp" = 'B27011_008',
+    "labor_force" = "B27011_002",
+    "aggregate_hh_income" = "B19025_001", # aggregate_hh_income
+    "aggregate_hh_income_est" = "B19025_001", # aggregate_hh_income_est
+    "hh_income_count_est" = "B19001_001" # hh_income_count_est summary variable
+  )) %>%
+  select(-moe) }
+
+economic_indicators <- function(df, tracts) {
+  df %>%
+  select(!"NAME")%>%
+  filter(GEOID %in% tracts) %>%
+  group_by("GEOID") %>%
+  summarise(total_pop = sum(pop_pov_num),
+            med_income = sum(med_income),
+            pop_pov_num = sum(pop_pov_num),
+            unemp = sum(unemp),
+            labor_force = sum(labor_force)
+  ) %>%
+  transmute(med_income, med_income, pop_pov_num, 
+            pov_rate = pop_pov_num/total_pop,
+            unemp,
+            labor_force,
+            unemp_rate = unemp/labor_force,
+  ) }
+
+# ******************Housing Functions *********************
+
+# ********************* Housing Charateristics ******************
+census_housing <- function(year, county){
+  get_acs(
+  geography = "tract",
+  state = state_obs,
+  county = county, 
+  year = year,
+  survey = "acs5",
+  variables = c(
+    "total_pop" = "B01003_001", # pop_num,
+    "unit_num" = "B25002_001", 
+    "unit_vac_num" = "B25002_003",
+    "unit_occ_rent_num" = "B25003_003", # unit_occ_rent_num
+    "unit_occ_own_num" = "B25003_002", # unit_occ_own_num
+    "med_rent" = "B25064_001", 
+    "unit_rent_cash_num" = "B25063_002",
+    "unit_occ_num" = "B25002_002", # unit_occ_num
+    "total_units" = "B25024_001", # total_units
+    "total_1_det" = "B25024_002", # total_1_det
+    "total_1_att" = "B25024_003", # total_1_att
+    "total_units_rent" = "B25032_013", # 	total_units_rent
+    "units_rent_1_det" = "B25032_014", # units_rent_1_det
+    "units_rent_1_att" = "B25032_015",
+    acs_vars("B25070_{c(7:10)*}E"))) %>%
+  select(-moe) %>%
+  pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate)%>%
+  filter(GEOID %in% geoids) %>%
+  mutate("rent_burd_pop" = acs_est_sum("B25070_{c(7:10)*}"))
+}
+
+
+housing_indicators <- function(df, tracts){
+  transmute(GEOID, NAME, med_rent,
+            unit_num, 
+            unit_occ_perc = unit_occ_num / unit_num,
+            unit_vac_perc = unit_vac_num / unit_num,
+            unit_occ_own_perc = unit_occ_own_num/unit_occ_num,
+            unit_occ_rent_perc = unit_occ_rent_num/unit_occ_num,
+            rent_burd = rent_burd_pop/unit_rent_cash_num)
+  }

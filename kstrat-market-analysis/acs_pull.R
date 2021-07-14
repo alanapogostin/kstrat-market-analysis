@@ -263,64 +263,59 @@ census_economic_2019_middletown <- census_economic_2019 %>%
   select(!"NAME")%>%
   filter(GEOID %in% geoids_obs) %>%
   group_by("GEOID") %>%
-  summarise_all(sum, !GEOID)
-  
-
-
-  transmute(GEOID, NAME, med_income, med_income, pop_pov_num, 
+  summarise(total_pop = sum(pop_pov_num),
+            med_income = sum(med_income),
+            pop_pov_num = sum(pop_pov_num),
+            unemp = sum(unemp),
+            labor_force = sum(labor_force)
+            ) %>%
+  transmute(med_income, med_income, pop_pov_num, 
             pov_rate = pop_pov_num/total_pop,
             unemp,
             labor_force,
             unemp_rate = unemp/labor_force,
-            )%>%
-  filter(GEOID %in% geoids) 
+            )  
 
 
 # ********************* Housing Charateristics ******************
-census_housing_2019 <- get_acs(
+census_housing_201 <- get_acs(
   geography = "tract",
   state = state_obs,
   county = county_obs, 
-  year = 2018,
+  year = 2019,
   survey = "acs5",
   variables = c(
+    "total_pop" = "B01003_001", # pop_num,
     "unit_num" = "B25002_001", 
     "unit_vac_num" = "B25002_003",
     "unit_occ_rent_num" = "B25003_003", # unit_occ_rent_num
     "unit_occ_own_num" = "B25003_002", # unit_occ_own_num
     "med_rent" = "B25064_001", 
-    "rent_burden_sev_num" = "B25070_010", # rent_burden_sev_num
+    "unit_rent_cash_num" = "B25063_002E",
     "unit_occ_num" = "B25002_002", # unit_occ_num
     "total_units" = "B25024_001", # total_units
     "total_1_det" = "B25024_002", # total_1_det
     "total_1_att" = "B25024_003", # total_1_att
     "total_units_rent" = "B25032_013", # 	total_units_rent
     "units_rent_1_det" = "B25032_014", # units_rent_1_det
-    "units_rent_1_att" = "B25032_015"))%>%
+    "units_rent_1_att" = "B25032_015",
+    acs_vars("B25070_{c(7:10)*}"))) %>%
   select(-moe) %>%
   pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate)%>%
-  filter(GEOID %in% geoids) 
+  filter(GEOID %in% geoids) %>%
+  mutate("rent_burd_pop" = acs_est_sum("B25070_{c(7:10)*}"))
+         
 
-# Creating indicators
-# census_19_indicators <- census_2019 %>%
-#   select(-moe) %>%
-#   pivot_wider(id_cols = c("GEOID", "NAME"), names_from = variable, values_from = estimate) %>%
-#   select(!"GEOID", !"NAME") %>%
-#   summarize() %>%
-#   transmute(GEOID, NAME, 
-#             total_pop,
-#             med_income,
-#             med_rent,
-#             unemp,
-#             minority = 1 - (race_white/total_pop),
-#             college = (educ_college + educ_grad)/total_pop,
-#             poverty_rate = pov_pop_num/total_pop, # do we want to use total pop as the denominator instead? 
-#             unemp_rate = unemp/na_if(labor_force, 0),
-#             pop_race_asian_pct = race_asian / na_if(total_pop, 0), 
-#             pop_race_black_pct = race_black / na_if(total_pop, 0),
-#             pop_race_hisp_pct  = race_hisp / na_if(total_pop, 0),
-#             pop_race_white_pct = race_white / na_if(total_pop, 0)
-#   )
+census_housing_indicators <- census_housing_2019 %>%
+  transmute(GEOID, NAME, med_rent,
+            unit_num, 
+            unit_occ_perc = unit_occ_num / unit_num,
+            unit_vac_perc = unit_vac_num / unit_num,
+            unit_occ_own_perc = unit_occ_own_num/unit_num,
+            unit_occ_rent_perc = unit_occ_rent_num/unit_num,
+            rent_burd = rent_burd_pop/unit_occ_rent_num,
+            rent_burd_2 = rent_burd_pop/unit_rent_cash_num
+            )
 
 
 
