@@ -3,8 +3,10 @@ library(tidyqwi)
 library(purrr)
 
 
-year <- c()
-tracts <- c()
+year <- c("2010", "2020")
+tracts <- c("09007541600",
+            "09007541700",
+            "09006802000")
 
 argList <- list(x = tracts, y = year) # Update
 
@@ -20,5 +22,4 @@ qwi_data <- map2(arguments$x, arguments$y, ~
                      all_groups = FALSE,
                      endpoint = "se",
                      geography = "cbsa",
-                     processing = "multiprocess",
-                     apikey = APIkey))
+                     processing = "multiprocess"))
